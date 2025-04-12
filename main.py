@@ -62,15 +62,15 @@ def pedir_caminho_arquivo():
 
 
         except FileNotFoundError as fnf:
-            registrar_log(f"Erro: {fnf}\n")  
+            registrar_log(f"Erro: {fnf}")  
             print(f"Erro: {fnf}\n")
 
         except ValueError as ve:
-            registrar_log(f"Erro: {ve}\n")  
+            registrar_log(f"Erro: {ve}")  
             print(f"Erro: {ve}\n")
 
         except Exception as e:
-            registrar_log(f"Erro inesperado: {e}\n")
+            registrar_log(f"Erro inesperado: {e}")
             print(f"Erro inesperado: {e}\n")
 
 
@@ -134,6 +134,69 @@ def exibir_resumo_dataframe(dataFrame):
 
 
 
+def fazer_limpeza_dataframe(dataFrame):
+    while True:
+        try:
+            resposta = input('Para continuar devemos alguns tratamentos nos dados. Digite qualquer coisa para continuar: ')
+
+            if not resposta:
+                raise ValueError("Nada foi digitado.")
+
+            registrar_log(f"Usuário confirmou a limpeza dos dados digitando a seguinte mensagem: {resposta}")  
+
+            dataFrame = limpeza_educacao_pais(dataFrame)
+            dataFrame = limpeza_attendance(dataFrame)
+
+            return dataFrame
+
+
+        except ValueError as ve:
+            registrar_log(f"Erro: {ve}")  
+            print(f"Erro: {ve}\n")
+
+
+
+
+def limpeza_educacao_pais(dataFrame):
+
+
+    quantidade_antes = len(dataFrame)
+
+    dataFrame = dataFrame.dropna(subset=['Parent_Education_Level'])
+
+    quantidade_depois = len(dataFrame)
+
+    print(f"\nForam removidas {quantidade_antes - quantidade_depois} linhas em que o nível de educação dos pais estava vazio. Agora o arquivo possui {quantidade_depois} registros")
+    registrar_log(f"Foram removidas {quantidade_antes - quantidade_depois} linhas em que o nível de educação dos pais estava vazio. Agora o arquivo possui {quantidade_depois} registros")
+
+    return dataFrame
+
+
+def limpeza_attendance(dataFrame):
+
+    quantidade_nulos = dataFrame['Attendance (%)'].isna().sum()
+    mediana_attendance = dataFrame['Attendance (%)'].median()
+
+    if quantidade_nulos > 0:
+        dataFrame['Attendance (%)'] = dataFrame['Attendance (%)'].fillna(mediana_attendance)
+        print(f"Foram preenchidos {quantidade_nulos} valores nulos na coluna 'Attendance (%)' com a mediana: {mediana_attendance:.2f}")
+        registrar_log(f"Foram preenchidos {quantidade_nulos} valores nulos na coluna 'Attendance (%)' com a mediana: {mediana_attendance:.2f}")
+    
+    else:
+        print(f"Tentou-se tratar a coluna de Frequência (Attendance), substituindo os valores nulos pela mediana {mediana_attendance:.2f}. Entretanto, não foram encontrados valores nulos.")
+        registrar_log(f"Tentou-se tratar a coluna de Frequência (Attendance), substituindo os valores nulos pela mediana {mediana_attendance:.2f}. Entretanto, não foram encontrados valores nulos.")
+
+
+    qtd_attendance = len(dataFrame['Attendance (%)'])
+    soma_attendance = dataFrame['Attendance (%)'].sum()
+
+    print(f"Feito o tratamento, a coluna de Frequência (Attendance) agora possui {qtd_attendance} registros, que somados registram o valor {soma_attendance:.1f}.")
+
+    return dataFrame
+
+
+
+
 # ===========================================================================================
 
 
@@ -149,5 +212,5 @@ df = carregar_dataframe()
 
 exibir_resumo_dataframe(df)
 
-
+df = fazer_limpeza_dataframe(df)
 
