@@ -84,15 +84,57 @@ def carregar_dataframe():
     if caminho.endswith(".csv"):
         df = pd.read_csv(caminho)
         registrar_log(f'Carregado o arquivo "{caminho}" para o Data Frame')
+        print(f'Carregado o arquivo "{caminho}" para o Data Frame')
         return df
 
     else:
         df = pd.read_json(caminho)
         registrar_log(f'Carregado o arquivo "{caminho}" para o Data Frame')
+        print(f'\nCarregado o arquivo "{caminho}" para o Data Frame')
         return df
     
 
 
+def exibir_resumo_dataframe(dataFrame):
+
+    print(f'\nAqui está um resumo estatístico sobre estes dados:\n ')
+
+    print(f"Quantidade total registros: {len(dataFrame)}")
+    registrar_log(f'Exibido resumo dos dados: {len(dataFrame)} registros.')
+
+
+    if "Gender" in dataFrame.columns:
+        quantidade_homens = 0
+        quantidade_mulheres = 0
+
+
+        for index, linha in dataFrame.iterrows(): 
+            if linha['Gender'] == 'Male':
+                quantidade_homens += 1
+            elif linha['Gender'] == 'Female':
+                quantidade_mulheres += 1
+
+        print(f"Quantidade de homens: {quantidade_homens}")
+        print(f"Quantidade de mulheres: {quantidade_mulheres}")
+        registrar_log(f'Exibido resumo dos dados: {quantidade_homens} homens e {quantidade_mulheres} mulheres')
+
+
+    if "Parent_Education_Level" in dataFrame.columns:
+        registros_sem_educacao_pais = 0
+
+        for index, linha in dataFrame.iterrows(): 
+            if pd.isna(linha['Parent_Education_Level']):
+                registros_sem_educacao_pais += 1
+
+
+        print(f"Quantidade de registros sem dados sobre a educação dos pais: {registros_sem_educacao_pais}\n")
+        registrar_log(f'Exibido resumo dos dados: {registros_sem_educacao_pais} registros sem dados sobre a educação dos pais')
+
+    
+
+
+
+# ===========================================================================================
 
 
 nomeUsuario = pedir_nome()  
@@ -105,4 +147,7 @@ caminho = pedir_caminho_arquivo()
 
 df = carregar_dataframe()
 
-print (df)
+exibir_resumo_dataframe(df)
+
+
+
