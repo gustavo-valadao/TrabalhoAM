@@ -1,6 +1,7 @@
 from datetime import datetime
 import os
 import pandas as pd
+import matplotlib.pyplot as plt
 
 def pedir_nome():
     while True:
@@ -172,6 +173,7 @@ def limpeza_educacao_pais(dataFrame):
     return dataFrame
 
 
+
 def limpeza_attendance(dataFrame):
 
     quantidade_nulos = dataFrame['Attendance (%)'].isna().sum()
@@ -196,6 +198,190 @@ def limpeza_attendance(dataFrame):
 
 
 
+def grafico_dispersao_sono_x_nota_final(dataFrame):
+    try:
+
+        if "Sleep_Hours_per_Night" not in dataFrame.columns or "Total_Score" not in dataFrame.columns:
+            raise KeyError("Colunas necessárias não encontradas no DataFrame.")
+
+
+        plt.scatter(dataFrame["Sleep_Hours_per_Night"], dataFrame["Total_Score"], color="blue")
+        plt.title("Relação entre Horas de Sono e Nota Final")
+        plt.xlabel("Horas de Sono")
+        plt.ylabel("Nota Final")
+        plt.grid(True)
+        plt.show()
+
+        registrar_log("Gráfico de dispersão (sono x nota final) gerado com sucesso.")
+
+
+    except KeyError as ke:
+        print(f"Erro: {ke}")
+        registrar_log(f"Erro ao gerar gráfico: {ke}")
+
+
+
+
+def grafico_barras_idade_x_media_intermediaria(dataFrame):
+    try:
+
+        if "Age" not in dataFrame.columns or "Midterm_Score" not in dataFrame.columns:
+            raise KeyError("Colunas 'Age' e/ou 'Midterm_Score' não encontradas no DataFrame.")
+
+       
+        media_notas_por_idade = dataFrame.groupby("Age")["Midterm_Score"].mean()
+
+        media_notas_por_idade.plot(kind="bar", color="cornflowerblue", edgecolor="black")
+
+        plt.title("Média das Notas Intermediárias por Idade")
+        plt.xlabel("Idade")
+        plt.ylabel("Média das Notas (Midterm_Score)")
+        plt.grid(axis="y", linestyle="--", alpha=0.6)
+        plt.tight_layout()
+        plt.show()
+
+        registrar_log("Gráfico de barras (idade x média das notas intermediárias) gerado com sucesso.")
+
+    except KeyError as ke:
+        print(f"Erro: {ke}")
+        registrar_log(f"Erro ao gerar gráfico de barras: {ke}")
+
+
+def grafico_pizza_idades(dataFrame):
+    try:
+        if "Age" not in dataFrame.columns:
+            raise KeyError("A coluna 'Age' não foi encontrada no DataFrame.")
+
+        def categorizar_idade(idade):
+            if idade <= 17:
+                return "Até 17"
+            elif 18 <= idade <= 21:
+                return "18 a 21"
+            elif 22 <= idade <= 24:
+                return "22 a 24"
+            else:
+                return "25 ou mais"
+
+
+        dataFrame["Faixa_Etaria"] = dataFrame["Age"].apply(categorizar_idade)
+
+        contagem_faixas = dataFrame["Faixa_Etaria"].value_counts().sort_index()
+
+        plt.figure(figsize=(6, 6))
+        contagem_faixas.plot(kind="pie", autopct="%1.1f%%", startangle=90, colors=["#ff9999", "#66b3ff", "#99ff99", "#ffcc99"])
+        plt.title("Distribuição de Alunos por Faixa Etária")
+        plt.ylabel("")
+        plt.tight_layout()
+        plt.show()
+
+        registrar_log("Gráfico de pizza por faixa etária gerado com sucesso.")
+
+    except KeyError as ke:
+        print(f"Erro: {ke}")
+        registrar_log(f"Erro ao gerar gráfico de pizza: {ke}")
+
+
+
+def menu_graficos(dataFrame):
+    while True:
+        try:
+            print("\nQuais informações você deseja ver sobre os dados? Digite uma opção")
+            print("1 - Calcular média, mediana, moda, desvio padrão de alguma coluna")
+            print("2 - Gráfico de dispersão: Horas de Sono x Nota Final")
+            print("3 - Gráfico de barras: Idade x Média das Notas Intermediárias")
+            print("4 - Gráfico de pizza: Distribuição de Alunos por Faixa Etária")
+            print("0 - Encerrar o programa.")
+
+            escolha = input("Digite a opção desejada: ").strip()
+
+            if escolha == "1":
+
+                registrar_log("Menu de opções - Usuário digitou 1 (Calcular média, mediana, moda, desvio padrão de alguma coluna)")
+                analisar_coluna(dataFrame)
+            elif escolha == "2":
+                registrar_log("Menu de opções - Usuário digitou 2 (gráfico de dispersão: sono x nota final)")
+                grafico_dispersao_sono_x_nota_final(dataFrame)
+
+            elif escolha == "3":
+                registrar_log("Menu de opções - Usuário digitou 3 (gráfico de barras: idade x média das notas intermediárias)")
+                grafico_barras_idade_x_media_intermediaria(dataFrame)
+
+            elif escolha == "4":
+                registrar_log("Menu de opções - Usuário digitou 4 (gráfico de pizza: faixa etária)")
+                grafico_pizza_idades(dataFrame)
+
+            elif escolha == "0":
+                print("\nObrigado por usar nosso programa! Esperamos que tenha gostado o suficiente para ganharmos nota máxima =)")
+                registrar_log("Menu de opções - Usuário digitou 0 (Encerrar o programa)")
+                break
+
+            else:
+                raise ValueError("Opção inválida. Digite 0, 1, 2, 3 ou 4.")
+
+        except ValueError as ve:
+            print(f"Erro: {ve}")
+            registrar_log(f"Erro no menu de gráficos: {ve}. Usuário digitou {escolha}")
+
+        except Exception as e:
+            print(f"Erro inesperado: {e}")
+            registrar_log(f"Erro inesperado no menu de gráficos: {e}")
+
+
+
+def analisar_coluna(dataFrame):
+    colunas_numericas = dataFrame.select_dtypes(include='number').columns.tolist()
+
+    if not colunas_numericas:
+        print("Não há colunas numéricas para analisar.")
+        return
+
+    while True:
+        print("\nColunas numéricas disponíveis:")
+
+        for i, coluna in enumerate(colunas_numericas, start=1):
+            print(f"{i} - {coluna}")
+        print("99 - Voltar ao menu principal")
+
+        try:
+            escolha = input("\nDigite o número da coluna que deseja analisar: ").strip()
+
+            if escolha == "99":
+                print("Voltando ao menu principal...\n")
+                registrar_log("Menu de análise de coluna - Usuário digitou 99 (voltar ao menu principal)")
+                break
+
+            escolha = int(escolha)
+
+            if escolha < 1 or escolha > len(colunas_numericas):
+                print("Número inválido. Tente novamente.")
+                continue
+
+            coluna = colunas_numericas[escolha - 1]
+            print(f"\nVocê escolheu a coluna: {coluna}")
+
+            dados = pd.to_numeric(dataFrame[coluna], errors='coerce').dropna()
+
+            media = dados.mean()
+            mediana = dados.median()
+            desvio_padrao = dados.std()
+            moda_valor = dados.mode()[0]
+
+
+            print(f"\nAnálise da coluna '{coluna}':")
+            print(f"Média: {media:.2f}")
+            print(f"Mediana: {mediana:.2f}")
+            print(f"Moda: {moda_valor}")
+            print(f"Desvio padrão: {desvio_padrao:.2f}")
+
+            registrar_log(f"Analisada a coluna '{coluna}': Média={media:.2f}, Mediana={mediana:.2f}, Moda={moda_valor}, Desvio Padrão={desvio_padrao:.2f}")
+
+        except ValueError:
+            print("Por favor, digite um número válido.")
+        except Exception as e:
+            print(f"Ocorreu um erro ao analisar a coluna: {e}")
+            registrar_log(f"Erro ao analisar a coluna: {e}")
+
+
 
 # ===========================================================================================
 
@@ -213,4 +399,6 @@ df = carregar_dataframe()
 exibir_resumo_dataframe(df)
 
 df = fazer_limpeza_dataframe(df)
+
+menu_graficos(df)
 
