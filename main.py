@@ -30,6 +30,16 @@ def pedir_nome():
 
 
 
+def registrar_log_inicial(mensagem, usuario):
+    datahora = datetime.now().strftime("%d/%m/%y  %H:%M:%S")
+    log = f"\n[{datahora}] {usuario}: {mensagem}\n"
+    
+
+    with open("log.txt", "a", encoding="utf-8") as f:
+        f.write(log)
+
+
+
 def registrar_log(mensagem):
     datahora = datetime.now().strftime("%d/%m/%y  %H:%M:%S")
     log = f"[{datahora}] {nomeUsuario}: {mensagem}\n"
@@ -386,9 +396,11 @@ def analisar_coluna(dataFrame):
 # ===========================================================================================
 
 
+registrar_log_inicial(f"Programa iniciado.", "Sistema")  
+
 nomeUsuario = pedir_nome()  
 
-registrar_log(f"\n\nPrograma iniciado. O nome fornecido pelo usuário é : {nomeUsuario}")  
+registrar_log(f"O nome fornecido pelo usuário é : {nomeUsuario}")  
 
 print(f"\nOlá, {nomeUsuario}! Vamos começar.\n")
 
